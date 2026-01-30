@@ -1,0 +1,62 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import List
+
+app = FastAPI()
+
+#request model
+class User(BaseModel):
+    name: str
+    age: int
+    interest: List[str]
+#response model
+class UserResponse(BaseModel):
+    message: str
+    user: User
+    recommendation: List[str]
+
+@app.get("/recommend")
+def recommend_items(age: int, interest: str):
+    if age < 18:
+        category = "Teen"
+    elif age < 40:
+        category = "Adult"
+    else:
+        category = "Senior"
+
+    recommendations = []
+    if interest.lower() == "music":
+        recommendations = ["spotify Playlist", "Concert Tickets"]
+    elif interest.lower() == "sports":
+        recommendations = ["Ball Badminton", "Football", "Basket Ball"]
+    elif interest.lower() == "books":
+        recommendations = ["Chola Novels"]
+    else:
+        recommendations = ["Gift Card", "Surprise Box"]
+
+    return {
+        "category": category,
+        "interest": interest,
+        "recommendations": recommendations
+    }
+
+@app.post("/create_user", response_model=UserResponse)
+def create_user(user:User):
+    #simple rule: recommend based on first interst
+    first_interest = user.interest[0] if user.interest else "general"
+    recommendations = []
+
+    if first_interest.lower() == "music":
+        recommendations = ["Headphones", "Amazon Songs"]
+    elif first_interest.lower() == "sports":
+        recommendations = ["Football", "Basket Ball"]
+    elif first_interest.lower() == "books":
+        recommendations = ["Online library Access", "Latest Sci-Fic Novel"]
+    else:
+        recommendations = ["Gift voucher", "Surprise Item"]
+    
+    return {
+        "message": "User Profile Created with recommendations",
+        "user": user,
+        "recommendation": recommendations
+    }
